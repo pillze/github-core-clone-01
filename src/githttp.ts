@@ -393,14 +393,15 @@ export function handleReceivePack(ctx: Ctx, owner: string, repoNameGit: string):
   bytes(ctx.res, 200, 'application/x-git-receive-pack-result', Buffer.concat(chunks), ctx.requestId);
 }
 
-function isAncestor(repo: Repo, oldSha: string, newSha: string): boolean {
+function isAncestor(repo: Repo, oldOid: string, newOid: string): boolean {
+  if (oldOid === newOid) return true;
   const seen = new Set<string>();
-  const stack = [newSha];
+  const stack = [newOid];
   while (stack.length) {
     const oid = stack.pop()!;
     if (seen.has(oid)) continue;
     seen.add(oid);
-    if (oid === oldSha) return true;
+    if (oid === oldOid) return true;
     const obj = repo.objects.get(oid);
     if (!obj || obj.type !== 'commit') continue;
     for (const p of parseCommit(obj.data).parents) stack.push(p);
